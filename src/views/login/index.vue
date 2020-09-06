@@ -1,47 +1,48 @@
 <template>
   <div class="login-container">
-    <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form" autocomplete="on" label-position="left">
 
+    <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form" autocomplete="on" label-position="left">
+      <img :src="EmptyLogo" :alt="$t('login.title')" style="height: 30px;">
       <div class="title-container">
         <h3 class="title">
           {{ $t('login.title') }}
         </h3>
-        <lang-select class="set-language" />
-      </div>
 
+      </div>
+      <div class="title-container">
+        <p class="title-static">登录</p>
+      </div>
       <el-form-item prop="username">
-        <span class="svg-container">
-          <svg-icon icon-class="user" />
-        </span>
         <el-input
           ref="username"
           v-model="loginForm.username"
-          :placeholder="$t('login.username')"
           name="username"
           type="text"
           tabindex="1"
           autocomplete="on"
+          @focus="CurrentFoucsUserName = true"
+          @blur="UserNameBlur"
         />
+        <div :class="['mtitle',CurrentFoucsUserName?'mtitlefocus':'']">手机号或邮箱</div>
+
       </el-form-item>
 
       <el-tooltip v-model="capsTooltip" content="Caps lock is On" placement="right" manual>
         <el-form-item prop="password">
-          <span class="svg-container">
-            <svg-icon icon-class="password" />
-          </span>
           <el-input
             :key="passwordType"
             ref="password"
             v-model="loginForm.password"
             :type="passwordType"
-            :placeholder="$t('login.password')"
             name="password"
             tabindex="2"
             autocomplete="on"
             @keyup.native="checkCapslock"
-            @blur="capsTooltip = false"
+            @blur="PassWordBlur"
             @keyup.enter.native="handleLogin"
+            @focus="CurrentFoucsPassWord = true"
           />
+          <div :class="['mtitle',CurrentFoucsPassWord?'mtitlefocus':'']">密码</div>
           <span class="show-pwd" @click="showPwd">
             <svg-icon :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'" />
           </span>
@@ -64,49 +65,43 @@
           <span>{{ $t('login.password') }} : {{ $t('login.any') }}</span>
         </div>
 
-        <el-button class="thirdparty-button" type="primary" @click="showDialog=true">
-          {{ $t('login.thirdparty') }}
-        </el-button>
       </div>
     </el-form>
+    <div class="ShowLangChangeBottom">
+      <lang-select class="set-language" />
+    </div>
 
-    <el-dialog :title="$t('login.thirdparty')" :visible.sync="showDialog">
-      {{ $t('login.thirdpartyTips') }}
-      <br>
-      <br>
-      <br>
-      <social-sign />
-    </el-dialog>
   </div>
 </template>
 
 <script>
 import { validUsername } from '@/utils/validate'
 import LangSelect from '@/components/LangSelect'
-import SocialSign from './components/SocialSignin'
+import EmptyLogo from '../../assets/images/emptylogo.png'
 
 export default {
   name: 'Login',
-  components: { LangSelect, SocialSign },
+  components: { LangSelect },
   data() {
     const validateUsername = (rule, value, callback) => {
       if (!validUsername(value)) {
-        callback(new Error('Please enter the correct user name'))
+        callback(new Error('请输入正确的用户名'))
       } else {
         callback()
       }
     }
     const validatePassword = (rule, value, callback) => {
       if (value.length < 6) {
-        callback(new Error('The password can not be less than 6 digits'))
+        callback(new Error('密码不低于6位数'))
       } else {
         callback()
       }
     }
     return {
+      EmptyLogo: EmptyLogo,
       loginForm: {
-        username: 'admin',
-        password: '111111'
+        username: '',
+        password: ''
       },
       loginRules: {
         username: [{ required: true, trigger: 'blur', validator: validateUsername }],
@@ -117,6 +112,8 @@ export default {
       loading: false,
       showDialog: false,
       redirect: undefined,
+      CurrentFoucsPassWord: false,
+      CurrentFoucsUserName: false,
       otherQuery: {}
     }
   },
@@ -132,18 +129,12 @@ export default {
       immediate: true
     }
   },
-  created() {
-    // window.addEventListener('storage', this.afterQRScan)
-  },
   mounted() {
     if (this.loginForm.username === '') {
       this.$refs.username.focus()
     } else if (this.loginForm.password === '') {
       this.$refs.password.focus()
     }
-  },
-  destroyed() {
-    // window.removeEventListener('storage', this.afterQRScan)
   },
   methods: {
     checkCapslock(e) {
@@ -185,25 +176,18 @@ export default {
         }
         return acc
       }, {})
+    },
+    UserNameBlur() {
+      if (this.loginForm.username === '') {
+        this.CurrentFoucsUserName = false
+      }
+    },
+    PassWordBlur() {
+      this.capsTooltip = false
+      if (this.loginForm.password === '') {
+        this.CurrentFoucsPassWord = false
+      }
     }
-    // afterQRScan() {
-    //   if (e.key === 'x-admin-oauth-code') {
-    //     const code = getQueryObject(e.newValue)
-    //     const codeMap = {
-    //       wechat: 'code',
-    //       tencent: 'code'
-    //     }
-    //     const type = codeMap[this.auth_type]
-    //     const codeName = code[type]
-    //     if (codeName) {
-    //       this.$store.dispatch('LoginByThirdparty', codeName).then(() => {
-    //         this.$router.push({ path: this.redirect || '/' })
-    //       })
-    //     } else {
-    //       alert('第三方登录失败')
-    //     }
-    //   }
-    // }
   }
 }
 </script>
@@ -214,7 +198,7 @@ export default {
 
 $bg:#283443;
 $light_gray:#fff;
-$cursor: #fff;
+$cursor: rgb(15, 15, 15);
 
 @supports (-webkit-mask: none) and (not (cater-color: $cursor)) {
   .login-container .el-input input {
@@ -226,21 +210,20 @@ $cursor: #fff;
 .login-container {
   .el-input {
     display: inline-block;
-    height: 47px;
-    width: 85%;
-
     input {
       background: transparent;
-      border: 0px;
       -webkit-appearance: none;
-      border-radius: 0px;
-      padding: 12px 5px 12px 15px;
-      color: $light_gray;
-      height: 47px;
+      border-radius: 3px;
       caret-color: $cursor;
-
+      color: #333;
+      transition: all 0.25s ease-out;
+      padding: 5px 10px;
+      height: 40px;
+      line-height: 30px;
+      box-sizing: border-box;
+      font-size: 13px;
       &:-webkit-autofill {
-        box-shadow: 0 0 0px 1000px $bg inset !important;
+        box-shadow: 0 0 0px 1000px rgb(232, 240, 254) inset !important;
         -webkit-text-fill-color: $cursor !important;
       }
     }
@@ -248,30 +231,51 @@ $cursor: #fff;
 
   .el-form-item {
     border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(0, 0, 0, 0.1);
     border-radius: 5px;
-    color: #454545;
+  }
+
+  .el-form-item .mtitle {
+    position: absolute;
+    left: 12px;
+    top: 13px;
+    color: #9e9e9e;
+    font-size: 14px;
+    z-index: 0;
+    line-height: 1;
+    transition: all 0.3s;
+  }
+
+  .el-form-item .mtitle.mtitlefocus {
+    color: #2196f3;
+    font-size: 12px;
+    top: -7px;
+    background-color: white;
   }
 }
 </style>
 
 <style lang="scss" scoped>
-$bg:#2d3a4b;
+
 $dark_gray:#889aa4;
 $light_gray:#eee;
 
 .login-container {
   min-height: 100%;
+  line-height: 1.5;
   width: 100%;
-  background-color: $bg;
+  background-image: url('../../assets/images/HomeImage_1.jpg');
   overflow: hidden;
+  background-position: center;
 
   .login-form {
+    max-width: 420px;
+    padding: 48px 48px 23px;
+    box-sizing: border-box;
+    margin: 80px auto 0;
+    background: #ffffff;
+    border-radius: 4px;
+    margin-bottom: 15px;
     position: relative;
-    width: 520px;
-    max-width: 100%;
-    padding: 160px 35px 0;
-    margin: 0 auto;
     overflow: hidden;
   }
 
@@ -287,27 +291,24 @@ $light_gray:#eee;
     }
   }
 
-  .svg-container {
-    padding: 6px 5px 6px 15px;
-    color: $dark_gray;
-    vertical-align: middle;
-    width: 30px;
-    display: inline-block;
-  }
-
   .title-container {
     position: relative;
 
     .title {
-      font-size: 26px;
-      color: $light_gray;
-      margin: 0px auto 40px auto;
-      text-align: center;
+      font-size: 17px;
+      font-family: "Helvetica" !important;
+      font-weight: 400 !important;
+      color: #333;
+      margin-top: 16px;
       font-weight: bold;
     }
-
+    .title-static {
+      font-size: 20px !important;
+      margin-top: 30px !important;
+      color: #333;
+    }
     .set-language {
-      color: #fff;
+      color: #ccc;
       position: absolute;
       top: 3px;
       font-size: 18px;
@@ -319,23 +320,21 @@ $light_gray:#eee;
   .show-pwd {
     position: absolute;
     right: 10px;
-    top: 7px;
+    top: 2px;
     font-size: 16px;
     color: $dark_gray;
     cursor: pointer;
     user-select: none;
   }
-
-  .thirdparty-button {
-    position: absolute;
-    right: 0;
-    bottom: 6px;
+  .ShowLangChangeBottom {
+    text-align: center;
+    width: 100%;
   }
-
   @media only screen and (max-width: 470px) {
     .thirdparty-button {
       display: none;
     }
   }
+
 }
 </style>

@@ -73,7 +73,7 @@ export default {
     size: '布局大小'
   },
   login: {
-    title: '系统登录',
+    title: '天谷智能云平台',
     logIn: '登录',
     username: '账号',
     password: '密码',

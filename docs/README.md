@@ -1,17 +1,10 @@
-<!--
- * @Description: file content
- * @Author: Erich
- * @Date: 2020-09-10 01:38:23
- * @LastEditors: Erich
- * @LastEditTime: 2020-09-10 08:32:26
--->
 ---
 home: true
 heroImage: /assets/img/hero.png
 heroText: 天谷云智能管理平台
 tagline: 软件架构及说明文档
 actionText: 快速上手 →
-actionLink: /zh/guide/
+actionLink: /frontend/
 features:
 - title: 数字化驱动
   details: 整合企业的所有业务数据，多个业务环节统一管理，数据互相打通，消除信息孤岛。
@@ -19,5 +12,3 @@ features:
   details: 零代码灵活定制，个性化应用解决管理难题，让重复的工作自动化，满足多种业务需求。
 footer: Copyright © 2020-present Erich
 ---
-
-# 测试
